@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PPWPS Update Deployment Documentation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 20px;
+    }
+
+    h1 {
+      color: #2f4f4f;
+    }
+
+    h2 {
+      color: #4682b4;
+      margin-top: 20px;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 10px;
+      border-radius: 3px;
+      overflow-x: auto;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
+    ul {
+      margin-left: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>PPWPS Update Deployment Documentation</h1>
+  <p>
+    This document provides detailed instructions for deploying updates to the
+    PPWPS system, covering prerequisites, directory structure, required files,
+    script functionality, and post-deployment checks.
+  </p>
+
+  <div class="section">
+    <h2>1. Prerequisites</h2>
+    <ul>
+      <li>
+        Ensure access to <code>/home/scsysadm/update/20221111</code> with all
+        required files and directories prepared.
+      </li>
+      <li>
+        Verify that the user has root privileges or sufficient permissions for
+        updates, file management, and service operations.
+      </li>
+      <li>
+        Ensure all necessary services are running before stopping them for the
+        update process.
+      </li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>2. Directory Structure and Required Files</h2>
+    <p>
+      All required files are organized under
+      <code>/home/scsysadm/update/20221111</code> as follows:
+    </p>
+    <pre>
+      /home/scsysadm/update/20221111
+      ├── log4j-api-2.24.1.jar
+      ├── log4j-core-2.24.1.jar
+      ├── ppwps-autoreverse.service
+      ├── ppwps-mqnotifyservice.service
+      ├── ppwps-sendmailpolicy.xml
+      ├── autoreverse/
+      │ └── start-ppwps-autoreverse.sh
+      ├── java/
+      │ ├── jdk-17.0.12
+      │ ├── jdk-21.0.5
+      │ └── jdk1.8.0_431
+      ├── mobws/
+      │ └── start.sh
+      ├── mqnotifyservice/
+      │ ├── config/
+      │ ├── lib/
+      │ ├── log4j2.xml
+      │ ├── notifservice.jar
+      │ ├── notifservice.jar.old
+      │ ├── start.sh
+      │ └── stop.sh
+      ├── ppuniws/
+      │ └── start.sh
+      ├── ppwps-line/
+      │ └── start-ppwps-line.sh
+      ├── tasks/
+      │ ├── lib/
+      │ ├── ppwps-alipayreconcile.sh
+      │ └── (additional .sh scripts)
+      └── tomcat/
+      ├── bin/
+      ├── conf/
+      ├── lib/
+      ├── logs/
+      ├── temp/
+      ├── webapps/
+      └── work/</pre>
+  </div>
+
+  <div class="section">
+    <h2>3. Update Script Overview</h2>
+    <p>The Bash script performs the following steps:</p>
+    <ol>
+      <li>
+        <strong>Check Service Status:</strong> Ensures all required services
+        are running.
+      </li>
+      <li>
+        <strong>Stop Services:</strong> Stops each service for update
+        preparation.
+      </li>
+      <li>
+        <strong>Copy JAR Files:</strong> Updates Log4j by copying
+        <code>log4j-api-2.24.1.jar</code> and
+        <code>log4j-core-2.24.1.jar</code> to <code>/ppwps/lib</code>.
+      </li>
+      <li>
+        <strong>Create Symlinks:</strong> Links the new JAR files for version
+        control.
+      </li>
+      <li>
+        <strong>Backup and Update Tomcat:</strong> Backs up and replaces the
+        Tomcat directory.
+      </li>
+      <li>
+        <strong>Install Java Versions:</strong> Copies new JDKs to
+        <code>/opt/java</code>.
+      </li>
+      <li>
+        <strong>Update Java Symlinks:</strong> Updates symlinks to point to
+        new JDKs.
+      </li>
+      <li>
+        <strong>Update Task Scripts:</strong> Overwrites
+        <code>*.sh</code> scripts and updates the <code>lib</code> directory
+        in <code>/ppwps/tasks</code>.
+      </li>
+      <li>
+        <strong>Copy Policy XML:</strong> Copies
+        <code>ppwps-sendmailpolicy.xml</code> to <code>/ppwps/tasks</code>.
+      </li>
+      <li>
+        <strong>Update PPWPS Autoreverse:</strong> Copies
+        <code>start-ppwps-autoreverse.sh</code> and systemd service file.
+      </li>
+      <li>
+        <strong>Add New Service:</strong> Copies and configures
+        <code>mqnotifyservice</code> and systemd service file.
+      </li>
+      <li>
+        <strong>Set Service Permissions:</strong> Sets permissions on service
+        files to <code>-rw-r----- root:root</code>.
+      </li>
+      <li>
+        <strong>Reload and Enable Systemd:</strong> Reloads systemd daemon and
+        enables <code>ppwps-mqnotifyservice</code>.
+      </li>
+      <li>
+        <strong>Restart Services:</strong> Restarts all services and verifies
+        successful updates.
+      </li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>4. Execution Steps</h2>
+    <ol>
+      <li>
+        Place the script in a secure directory and make it executable:
+        <pre>chmod +x ppwps_update_script.sh</pre>
+      </li>
+      <li>
+        Run the script with root or sudo privileges:
+        <pre>sudo ./ppwps_update_script.sh</pre>
+      </li>
+      <li>
+        The script logs its operations in
+        <code>/var/log/ppwps_update.log</code>.
+      </li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>5. Post-Deployment Verification</h2>
+    <p>After running the script:</p>
+    <ul>
+      <li>
+        <strong>Check Service Statuses:</strong> Verify all services are
+        running:
+        <pre>
+          systemctl status ppwps-autoreverse
+          systemctl status ppwps-mqnotifyservice
+          systemctl status ppwps-impqrtrans
+          systemctl status ppwps-lineinitial
+          systemctl status ppwps-mobws
+          systemctl status ppwps-uniws
+          systemctl status ppwps-ws-tomcat</pre>
+      </li>
+      <li>
+        <strong>Verify File Copies and Permissions:</strong> Confirm Log4j
+        files, JDK installations, task scripts, and service permissions.
+      </li>
+      <li>
+        <strong>Inspect Logs:</strong> Review
+        <code>/var/log/ppwps_update.log</code> for errors.
+      </li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>6. Troubleshooting</h2>
+    <ul>
+      <li>
+        <strong>Service Failures:</strong> Check system journal logs for
+        service issues:
+        <pre>journalctl -xe</pre>
+      </li>
+      <li>
+        <strong>File Permission Issues:</strong> Verify ownership and
+        permissions if access errors occur. Ensure all files in
+        <code>/ppwps</code> and <code>/opt/tomcat</code> are owned by
+        <code>scsysadm:scservice</code>.
+      </li>
+    </ul>
+  </div>
+
+  <p>
+    This document outlines the deployment steps, required files, and
+    verification procedures to ensure a smooth update process for the PPWPS
+    system.
+  </p>
+</body>
+
+</html>

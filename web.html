@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Maintenance Update Script Documentation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    h1,
+    h2,
+    h3 {
+      color: #333;
+    }
+
+    code {
+      background-color: #f4f4f4;
+      padding: 2px 4px;
+      font-family: monospace;
+    }
+
+    pre {
+      background-color: #f4f4f4;
+      padding: 10px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Maintenance Update Script Documentation</h1>
+
+  <p>This document provides an overview of the Bash script used for updating and maintaining the
+    <code>ppwps-web-tomcat</code> service environment. The script performs updates for Log4j libraries, Tomcat, and the
+    Java JDK, ensuring the environment is up-to-date with the latest configurations.</p>
+
+  <h2>Purpose</h2>
+  <p>The script automates the following tasks:</p>
+  <ul>
+    <li>Stops the <code>ppwps-web-tomcat</code> service</li>
+    <li>Copies and sets up new Log4j libraries</li>
+    <li>Replaces the Tomcat and Java directories with updated versions</li>
+    <li>Sets appropriate permissions on updated files and directories</li>
+    <li>Starts the <code>ppwps-web-tomcat</code> service and verifies its status</li>
+    <li>Logs each step of the process to a log file for tracking and troubleshooting</li>
+  </ul>
+
+  <h2>Script Structure</h2>
+  <p>The script is organized into functions for modularity and readability:</p>
+  <ul>
+    <li><code>log()</code>: Logs messages to the console and the log file.</li>
+    <li><code>print_progress()</code>: Logs informational messages to indicate progress of each task.</li>
+    <li><code>check_service_status()</code>: Checks if a specified service is active.</li>
+    <li><code>stop_service()</code>: Stops a specified service if it is running.</li>
+    <li><code>copy_files()</code>: Copies files or directories with preservation of permissions.</li>
+    <li><code>set_permissions()</code>: Sets ownership and permissions for a specified path.</li>
+    <li><code>replace_directory()</code>: Backs up an existing directory and replaces it with a new one.</li>
+    <li><code>update_symlink()</code>: Updates or creates a symbolic link to a specified target.</li>
+    <li><code>main()</code>: Executes the main workflow by calling the functions in the required order.</li>
+  </ul>
+
+  <h2>Variables</h2>
+  <p>The following global variables are defined for use throughout the script:</p>
+  <ul>
+    <li><code>TOMCAT_SERVICE</code>: The service name for the Tomcat server (<code>ppwps-web-tomcat</code>).</li>
+    <li><code>UPDATE_DIR</code>: The directory containing the update files (Log4j JARs, Tomcat, and Java JDK).</li>
+    <li><code>LIB_DIR</code>: The directory where Log4j libraries are stored (<code>/ppwps/lib</code>).</li>
+    <li><code>TOMCAT_DIR</code>: The main directory for Tomcat (<code>/opt/tomcat</code>).</li>
+    <li><code>JAVA_DIR</code>: The main directory for Java JDKs (<code>/opt/java</code>).</li>
+    <li><code>JAVA_VERSION</code>: The specific version of Java being updated (<code>jdk1.8.0_431</code>).</li>
+    <li><code>USER</code> and <code>GROUP</code>: User and group ownership settings for file permissions.</li>
+    <li><code>LOG_FILE</code>: The log file for storing the script’s output
+      (<code>/var/log/maintenance_update.log</code>).</li>
+  </ul>
+
+  <h2>Function Details</h2>
+  <h3><code>log()</code></h3>
+  <p>Logs a message to both the console and the <code>LOG_FILE</code> for tracking script progress and errors.</p>
+
+  <h3><code>print_progress()</code></h3>
+  <p>Prints a formatted progress message to indicate the current step of the script.</p>
+
+  <h3><code>check_service_status()</code></h3>
+  <p>Checks if the specified service is running. Logs success or error accordingly.</p>
+
+  <h3><code>stop_service()</code></h3>
+  <p>Stops the specified service if it is active. Logs the action and error handling for troubleshooting.</p>
+
+  <h3><code>copy_files()</code></h3>
+  <p>Copies a source file or directory to a specified destination, preserving permissions and logging the action.</p>
+
+  <h3><code>set_permissions()</code></h3>
+  <p>Sets <code>770</code> permissions and ownership to <code>USER:GROUP</code> for a given path.</p>
+
+  <h3><code>replace_directory()</code></h3>
+  <p>Backs up an existing directory by renaming it with a <code>.bak</code> suffix, then copies the replacement
+    directory to the target location.</p>
+
+  <h3><code>update_symlink()</code></h3>
+  <p>Creates or updates a symbolic link to a target file or directory, logging the outcome.</p>
+
+  <h3><code>main()</code></h3>
+  <p>Executes the main process by calling each function in sequence. Stops the service, updates Log4j and Tomcat, sets
+    permissions, updates Java and Log4j symlinks, and restarts the service.</p>
+
+  <h2>Usage Instructions</h2>
+  <p>To run this script, use <code>sudo</code> to ensure it has the necessary privileges:</p>
+  <pre><code>sudo ./<script_name>.sh</code></pre>
+
+  <h2>Requirements</h2>
+  <ul>
+    <li>Ensure the update directory (<code>/home/scsysadm/update/20221111</code>) contains:
+      <ul>
+        <li><code>log4j-core-2.24.1.jar</code> and <code>log4j-api-2.24.1.jar</code></li>
+        <li>Updated <code>tomcat</code> directory with new Tomcat files</li>
+        <li>Java directory named <code>jdk1.8.0_431</code> with JDK files</li>
+      </ul>
+    </li>
+    <li>Ensure <code>/ppwps/lib</code>, <code>/opt/tomcat</code>, and <code>/opt/java</code> exist as target
+      directories.</li>
+    <li>Service <code>ppwps-web-tomcat</code> should be enabled and manageable by the script.</li>
+    <li>Ensure the user running the script has permission to write to <code>/var/log/maintenance_update.log</code>.</li>
+  </ul>
+
+  <h2>Logging</h2>
+  <p>The script logs all actions, progress, and errors to <code>/var/log/maintenance_update.log</code> for review and
+    troubleshooting.</p>
+
+  <h2>Notes</h2>
+  <p>This script is designed for system administrators who need to perform consistent, repeatable updates to a Tomcat
+    environment. Run this script with <code>sudo</code> to avoid permission issues.</p>
+</body>
+
+</html>
